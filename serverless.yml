@@ -1,0 +1,50 @@
+service: step-functions-test
+
+frameworkVersion: "=1.15.3"
+
+provider:
+  name: aws
+  runtime: python2.7
+  region: us-west-2
+  memorySize: 128
+  timeout: 60
+
+package:
+  exclude:
+    - node_modules/**
+
+functions:
+  doSomething1:
+    handler: handler.do_something_1
+  doSomething2:
+    handler: handler.do_something_2
+  doSomething3:
+    handler: handler.do_something_3
+
+stepFunctions:
+  stateMachines:
+    testFunc:
+      events:
+        - http:
+            path: step-functions-test/execute
+            method: POST
+      definition:
+        Comment: "A hello world example of an AWS Step Function being packaged and deployed via the Serverless framework"
+        StartAt: DoSomething1
+        States:
+          DoSomething1:
+            Type: Task
+            Resource: arn:aws:lambda:us-west-2:645248386121:function:step-functions-test-dev-doSomething1
+            Next: DoSomething2
+          DoSomething2:
+            Type: Task
+            Resource: arn:aws:lambda:us-west-2:645248386121:function:step-functions-test-dev-doSomething2
+            Next: DoSomething3
+          DoSomething3:
+            Type: Task
+            Resource: arn:aws:lambda:us-west-2:645248386121:function:step-functions-test-dev-doSomething3
+            End: true
+
+plugins:
+  - serverless-python-requirements
+  - serverless-step-functions
